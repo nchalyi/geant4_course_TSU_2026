@@ -39,7 +39,7 @@ Geant4 можно установить разными способами:
    ```bash
    docker run -it -e DISPLAY=host.docker.internal:0 -v C:\Users\YourName\your-directory\:/workspace jeffersonlab/geant4:g4v11.3.2-almalinux94 /bin/bash
    ```
-   - Вместо `C:\Users\YourName\your-directory\` укажите абсолютный путь к вашей рабочей папке на компьютере.
+   - Вместо `C:\Users\YourName\your-directory\` укажите путь к вашей рабочей папке на компьютере. Если указать `.`, то монтируется текущая папка.
    - Флаг `-it` запускает контейнер в интерактивном режиме с терминалом.
    - `-e DISPLAY=host.docker.internal:0` передаёт адрес графического сервера (Xserver) внутрь контейнера.
    - `-v` монтирует вашу локальную папку в `/workspace` внутри контейнера. Именно таким образом мы будем передавать файлы внутрь контейнера во время работы.
@@ -85,7 +85,7 @@ Geant4 можно установить разными способами:
    ```bash
    docker run -it -e DISPLAY=$DISPLAY -v /home/username/your-directory/:/workspace jeffersonlab/geant4:g4v11.3.2-almalinux94 /bin/bash
    ```
-   - Вместо `/home/username/your-directory/` укажите путь к вашей рабочей папке.
+   - Вместо `/home/username/your-directory/` укажите путь к вашей рабочей папке. Если указать `.`, то монтируется текущая папка.
    - `-e DISPLAY=$DISPLAY` передаёт текущую переменную окружения DISPLAY внутрь контейнера.
    - На некоторых системах может потребоваться добавить `--net=host`, чтобы контейнер мог получить доступ к Xserver через сеть хоста:
      ```bash
@@ -130,7 +130,7 @@ Geant4 можно установить разными способами:
    ```bash
    docker run -it -e DISPLAY=host.docker.internal:0 -v /Users/yourusername/your-directory/:/workspace jeffersonlab/geant4:g4v11.3.2-almalinux94 /bin/bash
    ```
-   - Вместо `/Users/yourusername/your-directory/` укажите путь к вашей рабочей папке.
+   - Вместо `/Users/yourusername/your-directory/` укажите путь к вашей рабочей папке. Если указать `.`, то монтируется текущая папка.
    - `host.docker.internal` — специальное DNS-имя, которое на macOS указывает на хост-машину.
    - Если у вас используется XQuartz, иногда требуется добавить `--net=host` или передать сокет X11 вручную:
      ```bash
