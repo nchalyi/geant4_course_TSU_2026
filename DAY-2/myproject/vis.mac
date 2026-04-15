@@ -1,0 +1,28 @@
+#
+# Внимание! Перед запуском этого макроса используйте /run/initialize
+#
+# Используем драйвер OpenGL для просмотра:
+/vis/open OGL
+#
+# Рисуем геометрию
+/vis/drawVolume
+#
+# Делаем мировой объем невидимым
+/vis/geometry/set/visibility logic-World 0  false
+#
+# Задаем цвет и стиль отображения мишени
+/vis/geometry/set/colour logic-Target 0 0 0 255 0.3
+/vis/viewer/set/style surface 
+#
+# Добавим оси координат
+/vis/scene/add/axes 
+/vis/scene/add/scale
+#
+# Добавим гладкие траектории 
+/vis/scene/add/trajectories smooth
+#
+# Ограничим визуализацию 100 траекториями
+/vis/scene/endOfEventAction accumulate 100
+#
+# Установим начальный угол просмотра
+/vis/viewer/set/viewpointThetaPhi -40 -50
