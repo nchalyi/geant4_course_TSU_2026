@@ -399,7 +399,7 @@ make -j5
 
 Давайте немного улучшим наше приложения. Добавим макросы для запуска, визуализации, а также UI мод.
 
-1. Для начала опять доплним наш main файл `myproject.cc`:
+1. Для начала опять дополним наш main файл `myproject.cc`:
 ```cpp
 #include "G4RunManagerFactory.hh"
 #include "globals.hh"
