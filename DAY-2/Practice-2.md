@@ -435,6 +435,9 @@ int main(){
 	runManager->SetUserInitialization( pl ); 
 	
 	runManager->SetUserInitialization( new MyActionInitialization ( detector ) ); 
+
+	// Ограничим чисто потоков, чтобы сделать выходной файл более читаемым
+	runManager->SetNumberOfThreads(1);
 	
 	// Добавляем визуализацию:
     G4VisManager* visManager = new G4VisExecutive;
