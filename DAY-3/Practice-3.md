@@ -1,6 +1,6 @@
 # Практическое занятие 3
 
-## 4. Вычисление физических величин
+## 4. Вычисление энергопотерь электрона в мишени
 
 Целью этой главы станет реализация вычисление величины потери энергии частицей (электрона)
 в нашей мишени (кремний).
@@ -79,7 +79,7 @@ void MyActionInitialization::Build() const {
 }
 ```
 
-### 4.3. Действия на шаге (SteppingAction)
+### 4.2. Действия на шаге (SteppingAction)
 
 Объект Step в Geant4 содержит информацию о том как изменилась энергия в начале и конце шага, что нам и нужно для вычисления энергопотерь.
 
@@ -150,7 +150,7 @@ void MySteppingAction::UserSteppingAction(const G4Step* step) {
 
 ```
 
-### 4.4. Действия на событии (Event)
+### 4.3. Действия на событии (Event)
 
 Реализуем `EventAction` класс.
 
@@ -215,7 +215,7 @@ void MyEventAction::EndOfEventAction(const G4Event*) {
 }
 ```
 
-### 4.5. Действия на всем сеансе (Run)
+### 4.4. Действия на всем сеансе (Run)
 
 Реализуем `RunAction` класс.
 
@@ -300,7 +300,7 @@ void MyRunAction::EndOfRunAction(const G4Run*) {
 
 ```
 
-## 4.6. Наш уникальный Run класс
+## 4.5. Наш уникальный Run класс
 
 Нам нужно создать уникальный для нас Run класс, ведь функционала из `RunManager` нам недостаточно.
 
@@ -310,6 +310,7 @@ void MyRunAction::EndOfRunAction(const G4Run*) {
 #define MYRUN_HH
 
 #include "G4Run.hh"
+#include "Histo.hh"
 
 class MyPrimaryGeneratorAction;
 class MyDetectorConstruction;
@@ -321,7 +322,10 @@ public:
 
 	void Merge(const G4Run* run) override;  
 
-	void AddEnergyDeposit(G4double edep);
+	// Заполняем энергопотери в гистограмму
+	void AddEnergyDeposit(G4double edep) {
+		fHist->Fill(edep);
+	}
 	
 	void EndOfRunSummary();
 
@@ -329,6 +333,8 @@ private:
 
 	MyDetectorConstruction*      fDetector;
 	MyPrimaryGeneratorAction*    fPrimary;
+
+	Hist*                          fHist;
 
 };
 
@@ -347,16 +353,24 @@ MyRun::MyRun(MyDetectorConstruction* det, MyPrimaryGeneratorAction* prim)
 : G4Run(), 
   fDetector(det),
   fPrimary(prim) 
-{} 
+{
+	// Создаем указатель из Histo класса
+	fHist = new Hist("Hist_Edep.dat", 0.0, 10.0*CLHEP::keV, 100);
+} 
 
 MyRun::~MyRun() 
-{}
+{
+	delete fHist; // Не забудем очистить указатель!
+}
 
 // Метод для "склеивания" статистики, собранную разными рабочими потоками, 
 // в один общий результат.
 void MyRun::Merge(const G4Run* run) {
 	// Поскольку наш Run немного другой, нужно опять посторить static_cast
 	const MyRun* localRun = static_cast<const MyRun*>(run);
+
+	// Добавляем гистограммы
+	fHist->Add(localRun->fHist);
 
 	fPrimary = localRun->fPrimary;
 	// В конце вызываем метод Merge базового класса, чтобы объединить члены базового класса
@@ -373,7 +387,197 @@ void MyRun::EndOfRunSummary() {
 			<< " Energy = " <<  fPrimary->GetParticleEnergy() 
 			<< G4endl;
 	G4cout << " Target thickness = " << fDetector->GetTargetThickness() << G4endl;
+
+	// Записывам результаты в файл
+	fHist->WriteToFile(true);
 }
 ```
 
-На следующем занятии мы добавим в Run заполнение гистограмм и сравним наше моделирование с экспериментом!
+### 4.6. Класс для гистограммировния
+
+Обычно в Geant4 для гистограммирования и записи в файлы используются встроенные классы для работы с пакетом ROOT CERN, который часто используется в анализе данных физики высоких энергий.
+
+Мы не будем реализовывать такой подход, а вместо этого воспользуемся простым `Histo.cc` классом, который будет заполнять наши результаты в гистограмму и выдавать файл с ними.
+Это простой класс, использующий только простейшие Geant4 функции.
+
+Вот так будет выглядеть include файл `Histo.hh`:
+```cpp
+#ifndef HIST_HH
+#define HIST_HH
+
+#include "globals.hh"
+
+#include <vector>
+
+class Hist {
+
+public:
+  // Конструктор: мин/макс значение гистограммы и число бинов
+  Hist(const G4String& filename, G4double min, G4double max, G4int numbin);
+  // Конструктор (альтернативный): мин/макс значение гистограммы и ширина бина
+  Hist(const G4String& filename, G4double min, G4double max, G4double delta);
+
+  ~Hist() {}
+
+  void Initialize();
+
+  void ReSet(const G4String& filename, G4double min, G4double max, G4int numbins) {
+    fFileName = filename;
+    fMin      = min;
+    fMax      = max;
+    fNumBins  = numbins;
+    fDelta    = (fMax - fMin) / fNumBins;
+    fInvDelta = 1./fDelta;
+    Initialize();
+  }
+
+  // Заполнить гистограмму величиной x
+  void Fill(G4double x);
+
+  // Заполнить гистограмму величиной x с весом w
+  void Fill(G4double x, G4double w);
+
+  G4int     GetNumBins() const { return fNumBins; }
+  G4double  GetDelta()   const { return fDelta;   }
+  G4double  GetMin()     const { return fMin;     }
+  G4double  GetMax()     const { return fMax;     }
+  G4double  GetSum()     const { return fSum;     }
+  const std::vector<G4double>& GetX() const { return fx;       }
+  const std::vector<G4double>& GetY() const { return fy;       }
+
+  // Запись в файл
+  void WriteToFile(G4bool isNorm=false);
+  void WriteToFile(G4double norm);
+
+  void Add(const Hist* hist);
+
+
+// Данные
+private:
+  G4String              fFileName;
+  std::vector<G4double> fx;
+  std::vector<G4double> fy;
+  G4double              fMin;
+  G4double              fMax;
+  G4double              fDelta;
+  G4double              fInvDelta;
+  G4double              fSum;
+  G4int                 fNumBins;
+};
+
+#endif
+```
+
+Реализация `Histo.cc`:
+```cpp
+#include "Hist.hh"
+#include  <cstdio>
+
+Hist::Hist(const G4String& fname, G4double min, G4double max, G4int numbin) 
+: fFileName(fname), 
+  fMin(min), 
+  fMax(max), 
+  fDelta(0.), 
+  fInvDelta(1.), 
+  fSum(0.),
+  fNumBins(numbin) {
+  fDelta    = (fMax - fMin) / fNumBins;
+  fInvDelta = 1./fDelta;
+  Initialize();
+}
+
+Hist::Hist(const G4String& fname, G4double min, G4double max, G4double delta)
+: fFileName(fname), 
+  fMin(min), 
+  fMax(max), 
+  fDelta(delta), 
+  fInvDelta(1.), 
+  fSum(0.),
+  fNumBins(0) {
+  fInvDelta = 1./fDelta;  
+  fNumBins = (G4int)((fMax - fMin) / (fDelta)) + 1.0;
+  Initialize();
+}
+
+
+void Hist::Initialize() {
+  fx.resize(fNumBins, 0.0);
+  fy.resize(fNumBins, 0.0);
+  for (G4int i = 0; i < fNumBins; ++i) {
+    fx[i] = fMin + i * fDelta;
+  }
+  fSum = 0.0;  
+}
+
+void Hist::Fill(G4double x) {
+  if (x<fMin) return;
+  G4int indx = (x==fMax) ? fNumBins-1 : (G4int)((x - fMin) * fInvDelta);
+   
+  if (indx>-1 && indx<fNumBins) {  
+    fy[indx] += 1.0;
+    fSum     += 1.0;
+  }
+}
+
+
+void Hist::Fill(G4double x, G4double w) {
+  if (x<fMin) return;
+  G4int indx = (x==fMax) ? fNumBins-1 : (G4int)((x - fMin) * fInvDelta);
+
+  if (indx>-1 && indx<fNumBins) {  
+    fy[indx] += w;
+    fSum     += w;
+  }
+}
+
+void Hist::WriteToFile(G4bool isNorm) {
+  FILE* f = fopen(fFileName, "w");
+  if (!f) {
+    G4cerr << "\n ***** ERROR in Hist::WriteToFile  "
+           << " cannot create the file = " << fFileName
+           << G4endl; 
+    exit(1);          
+  }
+  G4double norm = 1.0;
+  if (isNorm) {
+    norm  = 1. / (fSum*fDelta);
+  }
+  for (G4int i = 0; i < fNumBins; ++i) {
+    fprintf(f, "%d\t%.8g\t%.8g\n", i, fx[i] + 0.5 * fDelta, fy[i] * norm);
+  }
+  fclose(f);
+}
+
+
+void Hist::WriteToFile(G4double norm) {
+  FILE* f = fopen(fFileName, "w");
+  if (!f) {
+    G4cerr << "\n ***** ERROR in Hist::WriteToFile  "
+           << " cannot create the file = " << fFileName 
+           << G4endl; 
+    exit(1);          
+  }
+  for (G4int i = 0; i < fNumBins; ++i) {
+    fprintf(f, "%d\t%.8g\t%.8g\n", i, fx[i] + 0.5 * fDelta, fy[i] * norm);
+  }
+  fclose(f);
+}
+
+void Hist::Add(const Hist* hist) {
+  if (fNumBins != hist->GetNumBins() || 
+      fMin     != hist->GetMin() || 
+      fMax     != hist->GetMax()) {
+    G4cerr << "\n ***** ERROR in Hist::Add  "
+           << " histograms have different dimensions ! "
+           << G4endl;     
+  }
+  for (G4int i = 0; i < fNumBins; ++i) {
+    fy[i] += hist->GetY()[i];
+  } 
+  fSum += hist->GetSum();
+}
+```
+
+Теперь можем собрать наше приложение по стандартной схеме и посмотреть на выходной файл `Hist_edep.dat`!
+
+В следующий раз мы сравним наши результаты с экспериментом, а также добавим доп. функционал в наше приложение.
