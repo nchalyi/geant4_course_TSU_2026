@@ -5,6 +5,7 @@
 #include "G4VUserPrimaryGeneratorAction.hh"
 #include "MyDetectorConstruction.hh"
 #include "globals.hh"
+#include "G4ParticleGun.hh"
 
 class MyDetectorConstruction;
 class G4ParticleGun;
@@ -23,6 +24,14 @@ class MyPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
 
 			// Обновление позиции источника (нужно для детектора)
 			void UpdatePosition();
+
+			const G4String& GetParticleName() { 
+				return fParticleGun->GetParticleDefinition()->GetParticleName();
+			}
+
+			G4double GetParticleEnergy() {
+				return fParticleGun->GetParticleEnergy();
+			}
 		private:
 			MyDetectorConstruction* fMyDetector;
 			G4ParticleGun* fParticleGun;	

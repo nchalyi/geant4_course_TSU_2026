@@ -12,6 +12,14 @@ class MyDetectorConstruction : public G4VUserDetectorConstruction {
         MyDetectorConstruction();
         ~MyDetectorConstruction() override;
 
+        G4double GetTargetThickness() const {
+            return fTargetThickness;
+        }
+
+        const G4VPhysicalVolume* GetTargetPhysicalVolume() const {
+            return fTargetPhysicalVolume;
+        }
+
         G4VPhysicalVolume* Construct() override;
 
         G4double GetGunXPostinion() { return fGunXPosition; }
@@ -24,6 +32,7 @@ class MyDetectorConstruction : public G4VUserDetectorConstruction {
 
         G4double fGunXPosition;
 
+        G4VPhysicalVolume* fTargetPhysicalVolume;
 };
 
 #endif

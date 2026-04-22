@@ -21,7 +21,7 @@ G4VUserDetectorConstruction() {
         exit(-1);
     }
 
-    fTargetThickness = 1.0*CLHEP::cm;
+    fTargetThickness = 5.6*CLHEP::um;
 
     fGunXPosition = -0.25*(1.1*fTargetThickness+fTargetThickness);
 }
@@ -83,5 +83,6 @@ G4VPhysicalVolume* MyDetectorConstruction::Construct() {
     
     
     // III
+    fTargetPhysicalVolume = targetPhysical;
     return worldPhysical;                                                       
 }

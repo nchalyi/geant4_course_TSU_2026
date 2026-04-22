@@ -12,6 +12,7 @@ class MyActionInitialization : public G4VUserActionInitialization {
 		~MyActionInitialization() override;
 		
 		void Build() const override;
+		void BuildForMaster() const override;
 	private:
 		MyDetectorConstruction* fMyDetector;
 
