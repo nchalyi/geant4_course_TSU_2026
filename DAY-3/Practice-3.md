@@ -150,6 +150,39 @@ void MySteppingAction::UserSteppingAction(const G4Step* step) {
 
 ```
 
+Однако, для проверки действиельно ли наш шаг лежит в объеме мишени мы используем пока не существующий метод детектора `GetTargetPhysicalVolume()`. Нам нужно добавить этот метод в `MyDetectorConstruction` класс. Для этого в `.hh` добавим следующее:
+```cpp
+class MyDetectorConstruction : public G4VUserDetectorConstruction {
+    private:
+        // прочие методы
+
+        // Добавим вот эту функцию для получения физического объема        
+        const G4VPhysicalVolume* GetTargetPhysicalVolume() const {
+            return fTargetPhysicalVolume;
+        }
+
+        // прочие методы
+
+    private:
+
+        // прочие данные
+
+        // Добавим объект для физического объема
+        G4VPhysicalVolume* fTargetPhysicalVolume;
+
+};
+```
+А в `.cc` в самом конце добавим следующее:
+```cpp
+    // Весь предыдущий код
+
+    // III
+    fTargetPhysicalVolume = targetPhysical; // Присваеваем нашей новой переменной значение из геометрии
+    return worldPhysical;                                                       
+}
+
+```
+
 ### 4.3. Действия на событии (Event)
 
 Реализуем `EventAction` класс.
@@ -174,7 +207,7 @@ public:
 
 	// Реализуем небольшую функцию для последовательного суммирования edep из Step
 	void AddEnergyDeposit(G4double edep) {
-		fEdepPerEvent += edep;
+		    fEdepPerEvent += edep;
   	}
 
 private:
@@ -310,7 +343,7 @@ void MyRunAction::EndOfRunAction(const G4Run*) {
 #define MYRUN_HH
 
 #include "G4Run.hh"
-#include "Histo.hh"
+#include "Hist.hh"
 
 class MyPrimaryGeneratorAction;
 class MyDetectorConstruction;
@@ -391,6 +424,49 @@ void MyRun::EndOfRunSummary() {
 	// Записывам результаты в файл
 	fHist->WriteToFile(true);
 }
+```
+Однако, для вывода мы используем пока несуществующие методы `GetParticleName()`, `GetParticleEnergy() ` и `GetTargetThickness()`. Нам нужно добавить этот метод в `MyPrimaryGeneratorAction` и`MyDetectorConstruction` классы. 
+
+Для начала в `MyPrimaryGeneratorAction.hh` добавим следующие два простых inline метода:
+```cpp
+class MyPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction {
+    private:
+        // прочие методы
+
+        // Добавим функцию для получения имени частицы      
+        const G4String& GetParticleName() { 
+				   return fParticleGun->GetParticleDefinition()->GetParticleName();
+			  }
+
+        // Добавим функцию для получения энергии частицы     
+			  G4double GetParticleEnergy() {
+				    return fParticleGun->GetParticleEnergy();
+			  }
+
+    private:
+
+        // прочие данные
+
+};
+```
+
+А в `MyDetectorConstruction.hh` добавим следующее:
+```cpp
+class MyDetectorConstruction : public G4VUserDetectorConstruction {
+    private:
+        // прочие методы
+
+        // Добавим функцию для получения толщины мишени
+        G4double GetTargetThickness() const {
+            return fTargetThickness;
+        }   
+
+    private:
+
+        // прочие данные
+
+};
+
 ```
 
 ### 4.6. Класс для гистограммировния
@@ -580,4 +656,4 @@ void Hist::Add(const Hist* hist) {
 
 Теперь можем собрать наше приложение по стандартной схеме и посмотреть на выходной файл `Hist_edep.dat`!
 
-В следующий раз мы сравним наши результаты с экспериментом, а также добавим доп. функционал в наше приложение.
+В следующий раз мы сравним наши результаты с экспериментом, а также добавим новые UI команды в наше приложение!
