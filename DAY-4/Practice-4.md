@@ -265,7 +265,7 @@ void YourDetectorMessenger::SetNewValue(G4UIcommand* command, G4String newValue)
 Нужно только собрать проект в build, решить ошибки компиляции (если таковые будут) и запустить тестовый макрос `run.mac`.
 
 Нам осталось только проверить Geant4 моделирование в нашем приложении с реальным экспериментом.
-Мы будем использовать материал из [этой статьи](https://iopscience.iop.org/article/10.1088/1748-0221/6/06/P06013). [PDF публикации](/experiment/Meroli2011_paper.pdf).
+Мы будем использовать материал из [этой статьи](https://iopscience.iop.org/article/10.1088/1748-0221/6/06/P06013). [PDF публикации](https://github.com/nchalyi/geant4_course_TSU_2026/blob/main/DAY-4/experiment/Meroli2011_paper.pdf).
 
 1. Для этого создадим новый макрос `experiment.mac`, в котором укажем параметры для моделирования как в эксперименте:
 ```text
@@ -306,7 +306,7 @@ void YourDetectorMessenger::SetNewValue(G4UIcommand* command, G4String newValue)
 
 3. На выходе получим файл `Hist_edep.dat`.
 
-4. Возьмем файл с данными [здесь](/experiment/exp_Meroli_100MeV_electron_5p6um_Si.dat).
+4. Возьмем файл с данными [здесь](https://github.com/nchalyi/geant4_course_TSU_2026/blob/main/DAY-4/experiment/exp_Meroli_100MeV_electron_5p6um_Si.txt).
 
 5. Теперь нужно сравнить. Мы подготовили простой python скрипт для построения графиков `plot.py` который находится в директории `/experiment`. Вы можете построить график по-своему.
 
