@@ -3,6 +3,8 @@
 
 #include "G4VUserDetectorConstruction.hh"
 
+class MyDetectorMessenger;
+
 class G4Material;
 
 class MyDetectorConstruction : public G4VUserDetectorConstruction {
@@ -12,8 +14,16 @@ class MyDetectorConstruction : public G4VUserDetectorConstruction {
         MyDetectorConstruction();
         ~MyDetectorConstruction() override;
 
+        void SetTargetThickness(const G4double thickness) {
+            fTargetThickness = thickness;
+        }
         G4double GetTargetThickness() const {
             return fTargetThickness;
+        }
+
+        void SetTargetMaterial(const G4String& matName);
+        const G4Material* GetTargetMaterial() {
+            return fTargetMaterial;
         }
 
         const G4VPhysicalVolume* GetTargetPhysicalVolume() const {
@@ -33,6 +43,8 @@ class MyDetectorConstruction : public G4VUserDetectorConstruction {
         G4double fGunXPosition;
 
         G4VPhysicalVolume* fTargetPhysicalVolume;
+
+        MyDetectorMessenger* fDetMessenger;
 };
 
 #endif

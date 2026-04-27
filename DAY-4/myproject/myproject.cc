@@ -31,8 +31,6 @@ int main(int argc, char** argv) {
 
     runManager->SetUserInitialization( new MyActionInitialization (detector) );
 
-    runManager->SetNumberOfThreads(1);
-
     G4VisManager* visManager = new G4VisExecutive;
     visManager->Initialize();
 

@@ -1,4 +1,5 @@
 #include "MyDetectorConstruction.hh"
+#include "MyDetectorMessenger.hh"
 
 #include "G4Box.hh"
 #include "G4LogicalVolume.hh"
@@ -10,23 +11,28 @@
 #include "G4SystemOfUnits.hh"
 #include "G4PhysicalConstants.hh"
 
-MyDetectorConstruction::MyDetectorConstruction() : 
-G4VUserDetectorConstruction() {
+MyDetectorConstruction::MyDetectorConstruction() 
+: G4VUserDetectorConstruction() {
+    SetTargetMaterial("G4_Si");
 
-    G4String matName = "G4_Si";
+    fTargetThickness = 5.6*CLHEP::um;
 
+    fGunXPosition = -0.25*(1.1*fTargetThickness+fTargetThickness);
+
+    fDetMessenger = new MyDetectorMessenger(this);
+}
+
+MyDetectorConstruction::~MyDetectorConstruction() {
+    delete fDetMessenger;
+}
+
+void MyDetectorConstruction::SetTargetMaterial(const G4String& matName) {
     fTargetMaterial = G4NistManager::Instance()->FindOrBuildMaterial(matName);
     if (!fTargetMaterial) {
         G4cerr << " **** Материал не найден! ****" << G4endl;
         exit(-1);
     }
-
-    fTargetThickness = 5.6*CLHEP::um;
-
-    fGunXPosition = -0.25*(1.1*fTargetThickness+fTargetThickness);
 }
-
-MyDetectorConstruction::~MyDetectorConstruction() {}
 
 G4VPhysicalVolume* MyDetectorConstruction::Construct() {
     

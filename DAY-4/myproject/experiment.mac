@@ -1,0 +1,29 @@
+#
+# Устанавливаем вывод информации (verbose)
+/tracking/verbose 0
+/run/verbose 0
+/control/verbose 0
+/process/had/verbose 0
+/process/em/verbose 0
+#
+# Можно установить число потоков
+/run/numberOfThreads 4
+#
+# Установим наши материалы и толщину мишени через новые UI команды
+/myproject/detector/setTargetThickness 5.6 um
+/myproject/detector/setTargetMaterial G4_Si
+# Инициализация приложения
+/run/initialize
+# Установка глобального порог пробега частиц
+# Мы просим Geant4 не генерировать вторичные частицы (например, гамма-кванты, электроны или позитроны),
+# если их расчетный пробег в данном материале меньше 1 микрона
+/run/setCut 1.0 mm
+#
+# Установка энергии и типа частицы
+/gun/energy 100 MeV
+/gun/particle e-
+#
+# Выписывать информацию и о симуляции каждое 100-тысячное событие
+/run/printProgress 100000
+# Запуск симуляции с 1 000 000 событиями
+/run/beamOn 1000000
